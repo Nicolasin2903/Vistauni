@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Formulario</title>
+    <link rel="stylesheet" href="/css/vista.css">
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.0/dist/JsBarcode.all.min.js"></script>
+    <script src="https://cdn.emailjs.com/dist/email.min.js"></script>
+</head>
+<body class="principal">
+    <div class="top">
+        <div class="logo">
+            <img src="/img/escudo_ugc.png" alt="">
+        </div>
+    </div>
+
+    <form id="miFormulario">
+        <div class="form">
+            <div class="form-user">
+                <img src="/img/ugc.png" alt="">
+                <label for="selecciona">Seleccion Tipo De Documento</label>
+                <select name="tipo_documento" id="selecciona" required>
+                    <option value="">Seleccione su documento</option>
+                    <option value="tarjeta">TARJETA DE IDENTIDAD</option>
+                    <option value="cedula">CEDULA DE CUIDADANIA</option>
+                    <option value="extranjero">CEDULA DE EXTRANJERIA</option>
+                    <option value="pasaporte">PASAPORTE</option>
+                    <option value="registro">REGISTRO CIVIL</option>
+                </select>
+                <label for="num">Ingrese su número de documento</label>
+                <input type="number" id="num" name="numero_identidad" placeholder="Documento de identificación" required>
+                <input type="submit" value="Confirmar">
+                <input type="reset" value="Limpiar">
+            </div>
+        </div>
+    </form>
+
+    <div>
+        <svg id="barcode"></svg> <!-- Elemento donde se generará el código de barras -->
+    </div>
+
+    <div id="pantallaCarga" class="pantalla-carga" style="display:none;">
+        <img src="/img/carga.gif" alt="Cargando..." class="carga">
+    </div>
+
+    <style>
+        /* Aquí va tu CSS existente */
+        .pantalla-carga {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(28, 95, 22, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+        .carga {
+            color: #fff;
+            font-size: 24px;
+        }
+        /* Otros estilos aquí... */
+    </style>
+
+    <script>
+        // Inicializa EmailJS con tu User ID
+        (function(){
+            emailjs.init("DtXUV2r5qAq-46y9f"); // Usa tu User ID aquí
+        })();
+
+        // Define tus IDs de servicio y plantilla
+        const serviceID = "service_6rco7gm"; // Reemplaza esto con tu ID de servicio
+        const templateID = "template_zr0i9ym"; // Reemplaza esto con tu ID de plantilla
+
+        document.getElementById('miFormulario').addEventListener('submit', function(event) {
+            event.preventDefault(); // Evita el envío inmediato
+            document.getElementById('pantallaCarga').style.display = 'flex'; // Muestra la pantalla de carga
+
+            // Obtén los datos del formulario
+            const tipo_documento = document.getElementById('selecciona').value;
+            const numero_identidad = document.getElementById('num').value;
+            const barcodeData = `${tipo_documento}-${numero_identidad}`;
+
+            // Genera el código de barras
+            JsBarcode("#barcode", barcodeData, { format: "CODE128" });
+
+            // Envía el correo electrónico
+            emailjs.send(serviceID, templateID, {
+                tipo_documento: tipo_documento,
+                numero_identidad: numero_identidad,
+                codigo_barras: barcodeData // Incluir el código de barras en el correo
+            })
+            .then(function(response) {
+                console.log('Correo enviado con éxito!', response.status, response.text);
+                alert('Correo enviado con éxito');
+                setTimeout(() => {
+                    window.location.href = 'index2.html'; // Redirige a index2.html
+                }, 3000);
+            }, function(error) {
+                console.error('Error al enviar el correo', error);
+                alert('Hubo un error al enviar el correo. Verifique su configuración.');
+            });
+        });
+    </script>
+</body>
+</html>
